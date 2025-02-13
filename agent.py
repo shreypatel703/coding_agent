@@ -34,12 +34,11 @@ def webhook():
         json.dump(data,f, indent=4)
     try:
         # The event type is in the header. We're primarily looking for "pull_request" events.
-        eventType = data.headers["x-github-event"]
-        payload = data.body
+        eventType = data.get("pull_request", None)
 
         # For a "pull_request" event, if the action is "opened", we handle it with our function above.
-        if eventType == "pull_request" and payload.action == "opened":
-            handlePullRequestOpened(payload)
+        if eventType and data.get("action", None) == "opened":
+            handlePullRequestOpened(data)
         return jsonify({"message": "OK!"}), 200
     except Exception as error:
         print("Error processing webhook:", error)
