@@ -31,7 +31,7 @@ def webhook():
     data = request.json  # Get JSON payload
     print("Received Webhook Data:", json.dumps(data, indent=4))
     with open("data.json", "w") as f:
-        json.dump(f, data, indent=4)
+        json.dump(data,f, indent=4)
     try:
         # The event type is in the header. We're primarily looking for "pull_request" events.
         eventType = data.headers["x-github-event"]
