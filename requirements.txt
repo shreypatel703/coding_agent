@@ -1,3 +1,4 @@
 python-dotenv
 Flask
 typing_extensions
+octokitpy
