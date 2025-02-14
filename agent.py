@@ -131,7 +131,7 @@ Provide your review in the following XML format:
             f.write(text)
         return parseReviewXml(text)
     except Exception as error:
-        print("Error generating or parsing AI analysis:", error);
+        print("Error generating or parsing AI analysis:", error)
         return {
             "summary": "We were unable to analyze the code due to an internal error.",
             "fileAnalyses": [],
@@ -141,6 +141,7 @@ Provide your review in the following XML format:
 
 
 def postPlaceholderComment(owner: str, repo: str, pullNumber: int):
+    
     
     repository = g.get_repo(f"{owner}/{repo}")
 
