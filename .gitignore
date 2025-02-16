@@ -1,2 +1,10 @@
 .env
 venv/
+__pycache__/
+*/__pycache__/
+zold_code/
+private_key.pem
+*.pem
+*.crt
+*.csr
+*.key

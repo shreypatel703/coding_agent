@@ -105,11 +105,3 @@ class LLMHandler:
 
         # Return the response text (or process as needed)
         return response
-
-# Example Pydantic Models for Task Input and Output
-
-class CodeReviewInput(BaseModel):
-    code_changes: str
-
-class CodeReviewOutput(BaseModel):
-    text: str
