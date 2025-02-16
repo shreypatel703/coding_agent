@@ -1,31 +1,17 @@
 import os
 import json
 import base64
-from dotenv import load_dotenv
+
 import xml.etree.ElementTree as ET
 
 from typing import Optional, List
 from typing_extensions import TypedDict
 
-from github import Github
-from github_auth import generate_installation_token
 
-from openai import OpenAI
+from base_agent import g, handlePullRequestBase
+from github_auth import postPlaceholderComment, updateComment
+from llm import generate_text
 
-
-
-load_dotenv()
-
-OPENAI_API_KEY= os.getenv("OPENAI_API_KEY")
-
-if not OPENAI_API_KEY:
-    raise Exception("Missing OPENAI_API_KEY environment variable.")
-
-
-installation_token = generate_installation_token()
-g = Github(installation_token)
-
-client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 class FileChange(TypedDict):
@@ -44,22 +30,6 @@ class CodeAnalysis(TypedDict):
     summary: str
     fileAnalyses: List[FileAnalysis]
     overallSuggestions: List[str]
-
-
-
-def generate_text(prompt: str):
-    # Make an API call to OpenAI to generate text
-    response = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        model="gpt-4o-mini",
-    )
-    response_message = response.choices[0].message.content
-    return response_message
 
 
 def parseReviewXml(text:str):
@@ -129,19 +99,6 @@ Provide your review in the following XML format:
         }
 
 
-
-def postPlaceholderComment(owner: str, repo: str, pullNumber: int):
-    
-    
-    repository = g.get_repo(f"{owner}/{repo}")
-
-    # Post a comment on the PR
-    comment = repository.get_issue(pullNumber).create_comment(
-        "PR Review Bot is analyzing your changes... Please wait."
-    )
-
-    return comment
-
 def updateCommentWithReview(comment, analysis:CodeAnalysis):
     analyses = []
     for file in analysis["fileAnalyses"]:
@@ -152,7 +109,7 @@ def updateCommentWithReview(comment, analysis:CodeAnalysis):
     suggestions = "\n".join([f"- {s}" for s in analysis['overallSuggestions']])
     print(analyses)
     print(suggestions)
-    new_text= """# Pull Request Review
+    body = """# Pull Request Review
 ## Summary
 {summary}
 
@@ -162,47 +119,23 @@ def updateCommentWithReview(comment, analysis:CodeAnalysis):
 ## Suggestions
 {suggestions}
 """.format(summary=analysis["summary"], analysis="\n".join(analyses), suggestions=suggestions)
-    comment.edit(new_text)
+    
+    updateComment(comment, body)
 
-def update_file(file, repository, ref):
-    content = None
-    if file.status != "removed":
-        try:
-            file_content = repository.get_contents(file.filename, ref)
-            # Decode base64 content
-            if hasattr(file_content, "content") and isinstance(file_content.content, str):
-                print(file.content)
-                content = base64.b64decode(file_content.content).decode("utf-8")
-
-        except Exception as e:  
-            print(f"Error retrieving content for {file.filename}:", e)
-    return {
-        "filename": file.filename,
-        "patch": file.patch,
-        "status": file.status,
-        "additions": file.additions,
-        "deletions": file.deletions,
-        "content": content
-    }
 
 def handlePullRequestOpened(payload):
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pullNumber = payload["pull_request"]["number"]
     title = payload["pull_request"]["title"]
-    headRef = payload["pull_request"]["head"]["sha"]
+    headRef = payload["pull_request"]["head"]["ref"]
     
     try:
-        placeholder_comment = postPlaceholderComment(owner, repo, pullNumber)
         repository = g.get_repo(f"{owner}/{repo}")
-        # Post a comment on the PR
-        files = repository.get_pull(pullNumber).get_files()
+
+        placeholder_comment = postPlaceholderComment(repository, pullNumber, "PR Review Bot is analyzing your changes... Please wait.")
         
-        updated_files = [update_file(f, repository, headRef) for f in files]
-        
-        # TODO: Get Commit Messages
-        commits = repository.get_pull(pullNumber).get_commits()
-        commit_messages = [c.commit.message for c in commits]
+        updated_files, commit_messages = handlePullRequestBase(repository, pullNumber, headRef)
 
         analysis = analyzeCode(title, updated_files, commit_messages)
         
