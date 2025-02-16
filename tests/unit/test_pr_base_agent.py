@@ -1,5 +1,6 @@
 import pytest
 from agents.pr_base_agent import PRBaseAgent
+from utils.github_utils import Github
 
 @pytest.fixture
 def mock_github_client(mocker):
@@ -25,4 +26,3 @@ def test_handle_pull_request(mock_github_client):
     assert commits == ['Commit message']
     mock_github_client.get_pull_request_files.assert_called_once_with(repository, pull_number)
     mock_github_client.get_pull_request_commits.assert_called_once_with(repository, pull_number)
-
