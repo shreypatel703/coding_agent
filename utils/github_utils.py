@@ -44,12 +44,15 @@ def getFileContent(repository, file, ref):
     return None
 
 def create_file(repository, filename, comment, file_content, branch):
+    """Create a new file in the repository."""
     repository.create_file(filename, comment, file_content, branch=branch)
 
 def update_file(repository, filename, comment, file_content, file_sha, branch):
+    """Update an existing file in the repository."""
     repository.update_file(filename, comment, file_content, sha=file_sha, branch=branch)
 
 def delete_file(repository, filename, comment, file_sha, branch):
+    """Delete a file from the repository."""
     repository.delete_file(filename, comment, file_sha, branch)
 
 
