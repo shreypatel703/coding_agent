@@ -1,7 +1,6 @@
 import os
 import jwt
 import time
-import base64
 import requests
 from dotenv import load_dotenv
 
@@ -47,29 +46,3 @@ def generate_installation_token():
     installation_token = token_response.json()["token"]
     
     return installation_token
-
-def postPlaceholderComment(repository, pullNumber: int, text:str):
-    
-    # Post a comment on the PR
-    try:
-        comment = repository.get_issue(pullNumber).create_comment(text)
-        return comment
-    except Exception as ex:
-        print("Error Creating Placeholder Comment for pull:", pullNumber)
-        raise Exception("Error Creating Placeholder Comment for pull:", pullNumber, "\nText:", text)
-
-def updateComment(commentObj, body):
-    commentObj.edit(body)
-    
-def getFileContent(file, repository, ref):
-    content = None
-    if file.status != "removed":
-        try:
-            file_content = repository.get_contents(file.filename, ref)
-            # Decode base64 content
-            if hasattr(file_content, "content") and isinstance(file_content.content, str):
-                content = base64.b64decode(file_content.content).decode("utf-8")
-
-        except Exception as e:  
-            print(f"Error retrieving content for {file.filename}:", e)
-    return content
