@@ -7,7 +7,7 @@ def test_update_file():
     file_mock = MagicMock()
     file_mock.status = 'modified'
     file_mock.filename = 'test_file.py'
-    file_mock.patch = '...'  
+    file_mock.patch = '...'
     file_mock.additions = 10
     file_mock.deletions = 0
     repository_mock = MagicMock()
@@ -27,6 +27,7 @@ def test_handle_pull_request_base():
     repository_mock = MagicMock()
     pull_number = 1
     head_ref = 'main'
+    file_mock = MagicMock()  # This should be defined here
     repository_mock.get_pull.return_value.get_files.return_value = [file_mock]
 
     # When
