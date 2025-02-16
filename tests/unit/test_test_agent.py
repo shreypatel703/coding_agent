@@ -23,4 +23,4 @@ def test_update_tests():
     existing_test_files = []  
     recommendations = "Add tests for new functions."
     result = updateTests(title, updated_files, commit_messages, existing_test_files, recommendations)
-    assert isinstance(result, list)  
+    assert isinstance(result, list)
