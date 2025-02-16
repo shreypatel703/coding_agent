@@ -1,7 +1,7 @@
 import json
 from base_agent import g, handlePullRequestBase
 from github_auth import postPlaceholderComment, getFileContent, updateComment
-from llm import generate_text
+from llm import generate_text, generate_json
 import xml.etree.ElementTree as ET
 
 
@@ -30,7 +30,7 @@ def gatingStep(title, updated_files, commit_messages, existing_test_files):
     print("c")
     try:
         body = f"""You are an expert in deciding if tests are needed for these changes.
-You have the PR title, commits, and file diffs/content. Only return the object in python Dictionary format: 
+You have the PR title, commits, and file diffs/content. Only return the object in JSON format: 
 {{"decision":{{"shouldGenerateTests":'True' or 'False',"reasoning":"some text","recommendations":"some text"}}}}
 
 Title: {title}
@@ -41,9 +41,9 @@ Changed Files:
 Existing Tests:
 {json.dumps(existing_tests_str)}
 
-Note: Do not include any text other than the JSON object itself. Do not include json in front as well
+Note: Do not include any text other than the JSON object itself. Output should not be a string. It should be a JSON object
 """
-        text = generate_text(body)
+        text = generate_json(body)
         with open("xml.html", "w") as f:
             f.write(text)
         return json.loads(text)

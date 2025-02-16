@@ -120,7 +120,7 @@ def updateCommentWithReview(comment, analysis:CodeAnalysis):
 {suggestions}
 """.format(summary=analysis["summary"], analysis="\n".join(analyses), suggestions=suggestions)
     
-    updateComment(body)
+    updateComment(comment, body)
 
 
 def handlePullRequestOpened(payload):
@@ -137,9 +137,9 @@ def handlePullRequestOpened(payload):
         
         updated_files, commit_messages = handlePullRequestBase(repository, pullNumber, headRef)
 
-        # analysis = analyzeCode(title, updated_files, commit_messages)
+        analysis = analyzeCode(title, updated_files, commit_messages)
         
-        # updateCommentWithReview(placeholder_comment, analysis)
+        updateCommentWithReview(placeholder_comment, analysis)
 
         print(f"Submitted code review for PR #${pullNumber} in ${owner}/${repo}")
     except Exception as e:
