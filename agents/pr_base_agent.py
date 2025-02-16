@@ -131,10 +131,8 @@ class PRTestAgent(PRBaseAgent):
         # Construct the comment body
         if new_test_proposals:
             body = f"""### AI Test Generator
-
-    Added/updated these test files on branch `{head_ref}`:
-    
-    {test_list}
+    \nAdded/updated these test files on branch '{head_ref}':
+    \n{test_list}
 
     *(Pull from that branch to see & modify them.)*
     """
