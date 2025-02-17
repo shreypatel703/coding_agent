@@ -21,6 +21,7 @@ def mock_test_proposals():
         ]
     }
 
+
 def test_test_and_fix_tests_success(setup_agent, mock_repository, mock_test_proposals):
     setup_agent.test_and_fix_tests(mock_repository, 'head_ref', mock_test_proposals)
     assert setup_agent.run_tests.call_count == 1
@@ -34,4 +35,4 @@ def test_test_and_fix_tests_failure(setup_agent, mock_repository, mock_test_prop
     assert setup_agent.run_tests.call_count == 1
     assert setup_agent.fix_failed_test.call_count == 1
     assert result['test_sample.py']['passed'] == False
-    assert result['test_sample.py']['error_message'] == 'Fail'  
+    assert result['test_sample.py']['error_message'] == 'Fail' 
