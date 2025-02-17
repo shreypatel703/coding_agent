@@ -15,11 +15,9 @@ def mock_repository():
 
 @pytest.fixture
 def mock_test_proposals():
-    return {
-        'test_proposals': [
-            {'filename': 'test_sample.py'}
-        ]
-    }
+    return [
+        {'filename': 'test_sample.py'}
+    ]
 
 
 def test_test_and_fix_tests_success(setup_agent, mock_repository, mock_test_proposals):
@@ -34,5 +32,5 @@ def test_test_and_fix_tests_failure(setup_agent, mock_repository, mock_test_prop
     result = setup_agent.test_and_fix_tests(mock_repository, 'head_ref', mock_test_proposals)
     assert setup_agent.run_tests.call_count == 1
     assert setup_agent.fix_failed_test.call_count == 1
-    assert result['test_sample.py']['passed'] == False
-    assert result['test_sample.py']['error_message'] == 'Fail' 
+    assert result[0]['passed'] == False
+    assert result[0]['error_message'] == 'Fail'
