@@ -8,11 +8,9 @@ def mock_github_client(mocker):
     return mock
 
 
-# Mocking the methods for getting repo and PR details correctly.
-
-def test_handle_pull_request(mock_github_client):
-    mock_repo = mocker.Mock()
-    mock_github_client.get_repo.return_value = mock_repo
+def test_handle_pull_request(mock_github_client, mocker):
+    mock_repo = mocker.Mock()  
+    mock_github_client.return_value.get_repo.return_value = mock_repo
 
     agent = PRBaseAgent()
     pull_number = 123
@@ -29,5 +27,6 @@ def test_handle_pull_request(mock_github_client):
 
     assert len(files) == 2
     assert commits == ['Commit message']
+    mock_repo.get_pull.assert_called_once_with(pull_number)
     mock_repo.get_pull.return_value.get_files.assert_called_once()
     mock_repo.get_pull.return_value.get_commits.assert_called_once()
