@@ -15,9 +15,7 @@ def mock_repository():
 
 @pytest.fixture
 def mock_test_proposals():
-    return [
-        {'filename': 'test_sample.py'}
-    ]
+    return [{'filename': 'test_sample.py'}]  # Changed from a dict to a list.
 
 
 def test_test_and_fix_tests_success(setup_agent, mock_repository, mock_test_proposals):
