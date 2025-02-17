@@ -16,8 +16,8 @@ def test_generate_fix_response_success():
         response = generate_fix_response(original_content, error_message)
         response = FixResponse(response['fixed_content'])  # Wrap response in FixResponse
         assert response.fixed_content == 'def test_example():\n    assert False'
-
-
++
++
 def test_generate_fix_response_failure():
     original_content = 'def test_example():\n    assert True'
     error_message = 'AssertionError'
