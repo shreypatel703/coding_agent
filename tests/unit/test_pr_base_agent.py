@@ -24,8 +24,8 @@ def test_handle_pull_request(mock_github_client, setup_agent):
 
     # Mock the methods to return test data
     mock_github_client.get_pull_request_files.return_value = [
-        {'filename': 'file1.py', 'status': 'modified'},
-        {'filename': 'file2.py', 'status': 'added'}
+        MagicMock(filename='file1.py', status='modified'),
+        MagicMock(filename='file2.py', status='added')
     ]
     mock_github_client.get_pull_request_commits.return_value = ['Commit Message']
 
