@@ -29,9 +29,11 @@ def test_handle_pull_request(mock_github_client, setup_agent):
     ]
     mock_github_client.get_pull_request_commits.return_value = ['Commit Message']
 
+    # Call the method under test
     files, commits = setup_agent.handle_pull_request(repository, pull_number, head_ref)
 
-    assert len(files) == 2
-    assert commits == ['Commit Message']
+    # Assertions
+    assert len(files) == 2  # Ensure the number of files returned is correct
+    assert commits == ['Commit Message']  # Ensure the commits returned is correct
     mock_github_client.get_pull_request_files.assert_called_once_with(repository, pull_number)
     mock_github_client.get_pull_request_commits.assert_called_once_with(repository, pull_number)
