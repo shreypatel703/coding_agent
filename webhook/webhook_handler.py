@@ -18,18 +18,21 @@ def process_webhook(event, data):
         save_webhook_data(data)  # Save webhook data for debugging
 
         action = data.get("action")
-        if event == "pull_request":
-            if action == "opened":
-                log_info("Handling PR opened event.")
-                PRCommentAgent().handle_pull_request_opened(data)
-            elif action == "labeled":
-                label_name = data.get("label", {}).get("name")
-                if label_name == "agent-review-pr":
-                    log_info("Handling PR labeled for agent review.")
-                    PRCommentAgent().handle_pull_request_opened(data)
-                elif label_name == "agent-generate-tests":
-                    log_info("Handling PR labeled for test generation.")
-                    PRTestAgent().handle_pull_request_for_test_agent(data)
+        if event == "pull_request" and action == "opened":
+            log_info("Handling PR opened event.")
+            
+            # Run PR Comment Agent first
+            comment_success = PRCommentAgent().handle_pull_request_opened(data)
+            if not comment_success:
+                log_error("PR Comment Agent failed to complete successfully")
+                return jsonify({"message": "PR review failed"}), 500
+            
+            # Only proceed with test generation if comment agent succeeds
+            log_info("Generating tests for the PR.")
+            test_success = PRTestAgent().handle_pull_request_for_test_agent(data)
+            if not test_success:
+                log_error("Test Generation Agent failed to complete successfully")
+                return jsonify({"message": "Test generation failed"}), 500
 
         return jsonify({"message": "OK!"}), 200
     except Exception as error:
