@@ -1,5 +1,6 @@
 import json
 from utils.github_utils import getFileContent
+from custom_types.base_types import GitHubFile
 
 FILE_SIZE_THRESHOLD = 32000
 
@@ -13,17 +14,17 @@ def write_json(file_path: str, data):
     with open(file_path, "w") as f:
         json.dump(data, f, indent=4)
 
-def update_file(file, repository, ref):
+def get_github_file(file, repository, ref):
     """Extract file details, including content and exclusion logic."""
     content = getFileContent(repository, file, ref)
     exclude = content and len(content) >= FILE_SIZE_THRESHOLD
 
-    return {
-        "filename": file.filename,
-        "patch": file.patch,
-        "status": file.status,
-        "additions": file.additions,
-        "deletions": file.deletions,
-        "excluded": exclude,
-        "content": content
-    }
+    return GitHubFile(
+        filename=file.filename,
+        patch=file.patch,
+        status=file.status,
+        additions=file.additions,
+        deletions=file.deletions,
+        excluded=exclude,
+        content=content
+    )

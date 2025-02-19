@@ -2,14 +2,7 @@ from pydantic import BaseModel, ValidationError, Field
 from typing import Any, Dict, Type, List
 from typing_extensions import TypedDict, Optional, Literal
 from utils.llm_utils import LLMHandler
-
-class FileChange(TypedDict):
-    filename: str
-    patch: str
-    status: str   # The status of the file (modified, added, removed, etc.)
-    additions: int    # Number of lines added
-    deletions: int    # Number of lines deleted
-    content: Optional[str] #The actual current content of the file (Base64-decoded)
+from custom_types.base_types import GitHubFile, GithubTestFile, GitHubCommit, TestProposal
 
 class ExistingFiles(BaseModel):
     filename: str
@@ -34,7 +27,7 @@ class Action(BaseModel):
 
 class Proposal(BaseModel):
     filename: str = Field(..., description="Relative File Path. Should be either `tests/unit/__.py` or`tests/integration/__.py`")
-    testType: str = Field(..., description="Type of test: 'unit' or 'integration'")
+    testType: Literal['unit', 'integration'] = Field(..., description="Type of test: 'unit' or 'integration'")
     testContent: str = Field(..., description="Python file containing test")
     actions: List[Action]
 
@@ -67,6 +60,7 @@ testUpdatePrompt = """
     - Mock external dependencies and database calls where necessary.
     - Follow best practices for structuring test functions (given/when/then, AAA - Arrange, Act, Assert).
     - Use pytest fixtures where appropriate for reusable setup/teardown logic.
+    - Ensure that when creating a new test file, all files names are unique.
 
     Title: ${title}
     Commits:
@@ -77,17 +71,17 @@ testUpdatePrompt = """
     ${existing_tests}
     """
 
-def generate_test_case_response(title: str, updated_files: List[FileChange], commit_messages: List[str], existing_tests, recommendations):
+def generate_test_case_response(title: str, updated_files: List[GitHubFile], commit_messages: List[GitHubCommit], existing_tests: List[GithubTestFile], recommendations: List[str]) -> List[TestProposal]:
     try:
-        file_changes= [FileChangePrompt(filename=f["filename"], patch=f["patch"], status=f["status"], content=f["content"]) for f in updated_files if f["excluded"] == False]
-        existing_tests= [ExistingFiles(filename=f["filename"], content=f["content"]) for f in existing_tests]
+        file_changes= [FileChangePrompt(filename=f.filename, patch=f.patch, status=f.status, content=f.content) for f in updated_files if not f.excluded]
+        existing_tests= [ExistingFiles(filename=f.filename, content=f.content) for f in existing_tests]
 
         openAI_config = {
             "model": "gpt-4o-mini"
         }
         input_data={
             "title": title,
-            "commits":commit_messages,
+            "commits":[c.message for c in commit_messages],
             "changed_files": file_changes,
             "existing_tests": existing_tests,
             "recommendations": recommendations
@@ -95,7 +89,13 @@ def generate_test_case_response(title: str, updated_files: List[FileChange], com
         openAI_handler = LLMHandler(model_config=openAI_config)
         openAI_handler.set_task_config("summarize_pr", prompt_template=testUpdatePrompt, input_model=testUpdateInput, output_model=testUpdateOutput) 
         response = openAI_handler.generate_response("summarize_pr", **input_data)
-        return response
+        return [TestProposal(
+            filename=p.filename,
+            testType=p.testType,
+            testContent=p.testContent,
+            actions=[Action(**a.model_dump()) for a in p.actions]
+        ) for p in response.test_proposals]
+    
     except Exception as e:
         print("Test Update step failed:", e)
-        return testUpdateOutput(test_proposals=[])
+        return []
