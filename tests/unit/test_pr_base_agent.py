@@ -36,3 +36,4 @@ def test_handle_pull_request(mock_github_client, setup_agent):
     assert commits == ['Commit Message']  # Ensure the commits returned is correct
     mock_github_client.get_pull_request_files.assert_called_once_with(repository, pull_number)
     mock_github_client.get_pull_request_commits.assert_called_once_with(repository, pull_number)
+
