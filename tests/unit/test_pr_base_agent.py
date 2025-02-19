@@ -10,7 +10,6 @@ def mock_github_client(mocker):
     mock.get_repo.return_value = 'mock_repo'  # Provide a mock repository name or object
     return mock
 
-
 @pytest.fixture
 def setup_agent():
     agent = PRBaseAgent()
