@@ -1,8 +1,7 @@
 from utils.llm_utils import LLMHandler
 from utils.logging_utils import log_error
 from pydantic import BaseModel
-from typing import Optional
-
+from typing import Optional, Type
 FixTestPrompt = """
 You are a helpful assistant that can fix test cases.
 You will be given a test case and an error message.
@@ -28,7 +27,7 @@ class FixTestOutput(BaseModel):
 
 
 
-def generate_fix_response(original_content: str, error_message: str):
+def generate_fix_response(original_content: str, error_message: str) -> Type[FixTestOutput]:
     try:
         openAI_config = {
             "model": "gpt-4o-mini"
@@ -47,8 +46,8 @@ def generate_fix_response(original_content: str, error_message: str):
         )
         
         response = openAI_handler.generate_response("fix_test", **input_data)
-        return response
+        return response.model_dump()
         
     except Exception as error:
         log_error(f"Error generating test fix: {error}")
-        return None
+        return FixTestOutput(fixed_content=None)

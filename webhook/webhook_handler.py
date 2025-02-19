@@ -1,10 +1,9 @@
 import json
 from flask import Blueprint, request, jsonify
 from utils.github_utils import save_webhook_data
-from agents.pr_base_agent import PRCommentAgent, PRTestAgent
+from agents.pr_comment_agent import PRCommentAgent
+from agents.pr_test_agent import PRTestAgent
 from utils.logging_utils import log_info, log_error
-
-webhook_blueprint = Blueprint("webhook", __name__)
 
 def process_webhook(event, data):
     """
@@ -18,7 +17,7 @@ def process_webhook(event, data):
         save_webhook_data(data)  # Save webhook data for debugging
 
         action = data.get("action")
-        if event == "pull_request" and action == "opened":
+        if event == "pull_request" and (action == "opened" or action == "labeled"):
             log_info("Handling PR opened event.")
             
             # Run PR Comment Agent first

@@ -15,7 +15,7 @@ MODEL_API_KEYS = {
 
 
 class LLMHandler:
-    def __init__(self, llm_type='ChatOpenAI', model_config=None, task_config=None):
+    def __init__(self, llm_type='ChatOpenAI', model_config=None, task_config=None) -> None:
         """
         Initialize the LLMHandler with a specific LLM type (Chat-based), model configuration, and task configuration.
         Args:
@@ -28,7 +28,7 @@ class LLMHandler:
         self.task_config = task_config or {}
         self.llm = self.initialize_llm()
 
-    def initialize_llm(self):
+    def initialize_llm(self) -> ChatOpenAI:
         """
         Initializes the LLM based on the chosen type and configuration.
         """
@@ -40,7 +40,7 @@ class LLMHandler:
         else:
             raise ValueError(f"Unsupported LLM type: {self.llm_type}")
 
-    def set_task_config(self, task_name: str, prompt_template: str, input_model: Type[BaseModel], output_model: Type[BaseModel], **kwargs):
+    def set_task_config(self, task_name: str, prompt_template: str, input_model: Type[BaseModel], output_model: Type[BaseModel], **kwargs) -> None:
         """
         Sets the configuration for a specific task, including the prompt template, input/output models, and other parameters.
         Args:
@@ -57,7 +57,7 @@ class LLMHandler:
             **kwargs
         }
 
-    def generate_response(self, task_name: str, conversation_history: list = None, **input_data: Dict[str, Any]) -> str:
+    def generate_response(self, task_name: str, conversation_history: list = None, **input_data: Dict[str, Any]) -> Type[BaseModel]:
         """
         Generates a response for the given task using the configured LLM, ensuring input/output typing.
         Args:

@@ -2,14 +2,7 @@ from pydantic import BaseModel, ValidationError, Field
 from typing import Any, Dict, Type, List
 from typing_extensions import TypedDict, Optional
 from utils.llm_utils import LLMHandler
-
-class FileChange(TypedDict):
-    filename: str
-    patch: str
-    status: str   # The status of the file (modified, added, removed, etc.)
-    additions: int    # Number of lines added
-    deletions: int    # Number of lines deleted
-    content: Optional[str] #The actual current content of the file (Base64-decoded)
+from custom_types.base_types import GitHubFile, GithubTestFile, GitHubCommit, TestGatingDecision
 
 class ExistingFiles(BaseModel):
     filename: str
@@ -46,24 +39,27 @@ Existing Tests:
 
 """
 
-def generate_gating_response(title: str, updated_files: List[FileChange], commit_messages: List[str], existing_tests):
+def generate_gating_response(title: str, updated_files: List[GitHubFile], commit_messages: List[GitHubCommit], existing_tests: List[GithubTestFile]) -> TestGatingDecision:
     try:
-        file_changes= [FileChangePrompt(filename=f["filename"], patch=f["patch"], status=f["status"], content=f["content"]) for f in updated_files if f["excluded"] == False]
-        existing_tests= [ExistingFiles(filename=f["filename"], content=f["content"]) for f in existing_tests]
+        file_changes= [FileChangePrompt(filename=f.filename, patch=f.patch, status=f.status, content=f.content) for f in updated_files if not f.excluded]
+        existing_tests= [ExistingFiles(filename=f.filename, content=f.content) for f in existing_tests]
+        commits = [commit.message for commit in commit_messages]
 
         openAI_config = {
             "model": "gpt-4o-mini"
         }
         input_data={
             "title": title,
-            "commits":commit_messages,
+            "commits": commits,
             "changed_files": file_changes,
             "existing_tests": existing_tests
         }
         openAI_handler = LLMHandler(model_config=openAI_config)
         openAI_handler.set_task_config("summarize_pr", prompt_template=testGatingPrompt, input_model=testGatingInput, output_model=testGatingOutput) 
         response = openAI_handler.generate_response("summarize_pr", **input_data)
-        return response
+
+        return TestGatingDecision(**response.model_dump())
+    
     except Exception as e:
         print("Gating step failed:", e)
-        return testGatingOutput(shouldGenerateTests=False, reasoning=f"ERROR:{e}", recommendations="")
+        return TestGatingDecision(shouldGenerateTests=False, reasoning=f"ERROR:{e}", recommendations="")
