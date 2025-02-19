@@ -7,7 +7,7 @@ from utils.github_utils import Github
 @pytest.fixture
 def mock_github_client(mocker):
     mock = mocker.patch('utils.github_utils.Github')
-    mock.get_repo.return_value = MagicMock()  # Mock the repository
+    mock.get_repo.return_value = 'mock_repo'  # Provide a mock repository name or object
     return mock
 
 
